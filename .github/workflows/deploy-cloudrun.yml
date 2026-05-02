@@ -1,0 +1,99 @@
+name: Build & Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGION: asia-southeast1
+  BACKEND_SERVICE_NAME: sustainatrack-backend
+  BACKEND_IMAGE_NAME: sustainatrack-be
+  FRONTEND_SERVICE_NAME: sustainatrack-frontend
+  FRONTEND_IMAGE_NAME: sustainatrack-fe
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build & Push Image
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/${{ env.BACKEND_IMAGE_NAME }}"
+          docker build -f backend/Dockerfile -t "$IMAGE:$GITHUB_SHA" backend
+          docker push "$IMAGE:$GITHUB_SHA"
+
+      - name: Deploy ke Cloud Run
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/${{ env.BACKEND_IMAGE_NAME }}"
+          gcloud run deploy ${{ env.BACKEND_SERVICE_NAME }} \
+            --image="$IMAGE:$GITHUB_SHA" \
+            --platform=managed \
+            --region=${{ env.REGION }} \
+            --allow-unauthenticated \
+            --port=8080 \
+            --memory=512Mi \
+            --set-env-vars="MONGO_URI=${{ secrets.MONGO_URI }},JWT_SECRET=${{ secrets.JWT_SECRET }},EMAIL_USER=${{ secrets.EMAIL_USER }},EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }},GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }},BACKEND_BASE_URL=${{ secrets.BACKEND_BASE_URL }}"
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build & Push Frontend Image
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/${{ env.FRONTEND_IMAGE_NAME }}"
+          docker build \
+            --build-arg REACT_APP_API_BASE_URL=${{ secrets.BACKEND_BASE_URL }} \
+            -f frontend/Dockerfile \
+            -t "$IMAGE:$GITHUB_SHA" \
+            frontend
+          docker push "$IMAGE:$GITHUB_SHA"
+
+      - name: Deploy Frontend ke Cloud Run
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.ARTIFACT_REPO }}/${{ env.FRONTEND_IMAGE_NAME }}"
+          gcloud run deploy ${{ env.FRONTEND_SERVICE_NAME }} \
+            --image="$IMAGE:$GITHUB_SHA" \
+            --platform=managed \
+            --region=${{ env.REGION }} \
+            --allow-unauthenticated \
+            --port=8080 \
+            --memory=256Mi
