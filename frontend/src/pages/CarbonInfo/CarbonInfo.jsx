@@ -1,21 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Leaf, Info, ArrowDown, ArrowUp, ChevronDown, Moon, Sun } from 'lucide-react';
+import { Leaf, Info, ArrowDown, ArrowUp, ChevronDown, Sun } from 'lucide-react';
 import './CarbonInfo.css';
 
 const CarbonInfo = () => {
   const [activeFAQ, setActiveFAQ] = useState(null);
   const [visible, setVisible] = useState({});
-  const [scrollY, setScrollY] = useState(0);
   const [darkMode, setDarkMode] = useState(true);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -42,10 +32,6 @@ const CarbonInfo = () => {
 
   const toggleFAQ = (index) => {
     setActiveFAQ(activeFAQ === index ? null : index);
-  };
-
-  const toggleTheme = () => {
-    setDarkMode(!darkMode);
   };
 
   return (

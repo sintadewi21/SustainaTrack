@@ -323,7 +323,7 @@ const AuthPage = () => {
             <div className="infield">
               <input type="password" name="password" placeholder="Password" value={loginData.password} onChange={(e) => handleChange(e, "login")} required />
             </div>
-            <a href="#" className="forgot">Forgot your password?</a>
+            <a href="/" className="forgot">Forgot your password?</a>
             <button className="ghostBtn" type="submit">Sign In</button>
           </form>
         </div>

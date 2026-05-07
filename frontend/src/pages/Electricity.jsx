@@ -158,7 +158,6 @@
 
 
 import React, { useState } from "react";
-import { useUserInput } from "../context/UserInputContext";
 import { Bolt } from "lucide-react";
 import QuizSection from "./QuizSection";
 
@@ -190,7 +189,6 @@ const Electricity = ({ setActiveSection }) => {
   ];
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const { userData, setUserInput } = useUserInput();
 
   const handleNext = () => {
     if (currentQuestionIndex < electricityQuestions.length - 1) {

@@ -40,10 +40,7 @@ import {
   Linkedin, 
   User, 
   Signature, 
-  Github, 
   Mail, 
-  Activity, 
-  BarChart4, 
   Leaf, 
   Calendar,
   ChevronDown,
@@ -62,8 +59,7 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  Legend 
+  ResponsiveContainer
 } from "recharts";
 import "./Profile.css";
 
