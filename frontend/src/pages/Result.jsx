@@ -452,10 +452,11 @@ const formatLabel = (label) => label.replace(/([A-Z])/g, " $1").trim(); // Conve
 
   useEffect(() => {
     setSelectedTips(getRandomTips(tipsWithIcons));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [showModal, setShowModal] = useState(false);
-  const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
+  const [windowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>

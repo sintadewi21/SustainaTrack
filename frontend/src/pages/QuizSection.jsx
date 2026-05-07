@@ -295,7 +295,6 @@ const QuizSection = ({
 
   const storedValue = userData[category]?.[field] || "";
   const [selectedOption, setSelectedOption] = useState(storedValue);
-  const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(
     storedValue instanceof File ? storedValue : null
   );
