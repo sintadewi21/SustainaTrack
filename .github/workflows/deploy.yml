@@ -14,35 +14,31 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # 1. Setup Node tanpa constraint cache npm
+    # 1. Setup Node.js dan Aktifkan Caching karena package-lock.json kamu sudah ada dan valid!
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: ${{ vars.NODE_VERSION }}
+        cache: npm
+        cache-dependency-path: package-lock.json
 
-    # 2. Menggunakan 'npm install' biasa karena tidak ada package-lock.json
+    # 2. Gunakan 'npm ci' karena package-lock.json kamu sudah terdefinisi dengan sangat baik
     - name: Install dependencies
-      run: npm install
+      run: npm ci
 
-    - name: Build Next.js application
-      run: npm run build
-      env:
-        NODE_ENV: production
-        MONGODB_URL: ${{ secrets.MONGODB_URL }}
-
-    # 3. Menyesuaikan copy package.json agar aman
+    # 3. KARENA BACKEND EXPRESS TIDAK BUTUH BUILD, LANGSUNG BUAT DEPLOYMENT PACKAGE
     - name: Create deployment package
       run: |
        mkdir -p deployment-package
-       cp -r .next deployment-package/
-       cp -r public deployment-package/ 2>/dev/null || true
-       cp package.json deployment-package/ 2>/dev/null || true
-
-    # 4. Menggunakan 'npm install --production' untuk menghemat space package
-    - name: Install deployment package dependencies
+       # Menyalin seluruh file server, rute, dan konfigurasi ke folder deployment
+       cp -r * deployment-package/ 2>/dev/null || true
+       
+    # 4. Bersihkan node_modules devDependencies agar package yang di-deploy ke Azure ringan
+    - name: Install production dependencies only
       working-directory: deployment-package
-      run: npm install --production
+      run: npm ci --omit=dev
       
+    # 5. Lepaskan ke Azure Web App
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v3
       with:
