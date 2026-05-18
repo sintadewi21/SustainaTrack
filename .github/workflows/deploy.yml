@@ -22,9 +22,12 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ vars.NODE_VERSION }}
+        cache: npm
+        cache-dependency-path: package-lock.json
+
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci
 
 
     - name: Build Next.js application
@@ -45,7 +48,7 @@ jobs:
 
     - name: Install deployement package
       working-directory: deployment-package
-      run: npm install --production
+      run: npm ci --omit=dev
       
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v3
@@ -54,3 +57,5 @@ jobs:
         slot-name: 'Production'
         package: deployment-package
         publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+    - name: Clean up deployment package
+      run: rm -rf deployment-package  
