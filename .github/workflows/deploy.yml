@@ -14,28 +14,28 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # 1. Setup Node murni tanpa instruksi cache
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: ${{ vars.NODE_VERSION }}
 
-    # 2. Gunakan npm install biasa agar tidak butuh package-lock.json yang rewel
-    - name: Install dependencies
+    # 1. Masuk ke folder backend untuk install dependencies
+    - name: Install backend dependencies
+      working-directory: backend
       run: npm install
 
-    # 3. Membuat deployment package untuk Express backend
+    # 2. Membuat paket deployment khusus untuk isi folder backend
     - name: Create deployment package
       run: |
        mkdir -p deployment-package
-       cp -r * deployment-package/ 2>/dev/null || true
+       cp -r backend/* deployment-package/ 2>/dev/null || true
        
-    # 4. Install hanya produksi dependencies untuk menghemat ruang di Azure
+    # 3. Install dependencies production saja di dalam paket deployment
     - name: Install production dependencies only
       working-directory: deployment-package
       run: npm install --production
       
-    # 5. Deploy ke Azure Web App
+    # 4. Deploy ke Azure Web App
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v3
       with:
